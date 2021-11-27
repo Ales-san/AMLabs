@@ -81,13 +81,20 @@ def simplex(a, c):
     for i in range(n - 1):
         d[i] = z[i] - c[i]
     d[-1] = 0
-    return simplex_step(a, basis_number, d)
+    a, basis_number,d = simplex_step(a, basis_number, d)
+    result = 0
+    for i in range(m):
+        result += a[i][-1] * c[basis_number[i]]
+    print("Result is:", result)
+    return a, basis_number, d
 
 
 def simplex_step(a, basis_number, d):
     m, n = a.shape
     count = 0
     for i in range(n):
+        if abs(d[i]) < 1e-9:
+            d[i] = 0
         if d[i] > 0:
             count += 1
     minimum = np.empty(n)
@@ -138,7 +145,7 @@ def main():
     # 1 0 0 1
     # 3 1 -1 1 4
     # 5 1 1 -1 4
-    c, a, base = read_data('test.txt')
+    c, a, base = read_data('./Lab1/test.txt')
     c, a = shift(c, a, base)
     n, m = len(a), len(base)
     a = gauss(a)
@@ -148,9 +155,4 @@ def main():
     print(basis_number)
 
 
-
 main()
-
-
-
-
