@@ -1,9 +1,5 @@
 import numpy as np
 
-A = np.array([[3, 1, -1, 1], [5, 1, 1, -1]])
-b = np.array([4, 4])
-z = np.array([-6, -1, -4, 5])
-
 
 def read_data(filename):
     file = open(filename, 'r')
@@ -12,7 +8,7 @@ def read_data(filename):
     base = []
     end = []
     for i in range(len(line)):
-        if line[i] == 1:
+        if line[i] != 0:
             base.append(i)
         else:
             end.append(i)
@@ -45,7 +41,8 @@ def gauss(a):
         if a[i, i] == 0:
             for j in range(n):
                 if a[j, i] != 0:
-                    a[i], a[j] = a[j], a[i]
+                    temp = np.copy(a[i])
+                    a[i], a[j] = a[j], temp
                     break
         if a[i, i] == 0:
             print("Error with null base value")
@@ -81,7 +78,13 @@ def simplex(a, c):
     for i in range(n - 1):
         d[i] = z[i] - c[i]
     d[-1] = 0
-    a, basis_number,d = simplex_step(a, basis_number, d)
+
+    check = simplex_step(a, basis_number, d)
+    if len(check) == 3:
+        a, basis_number, d = check
+    else:
+        print(check)
+        return a, basis_number, d
     result = 0
     for i in range(m):
         result += a[i][-1] * c[basis_number[i]]
@@ -92,23 +95,24 @@ def simplex(a, c):
 def simplex_step(a, basis_number, d):
     m, n = a.shape
     count = 0
+    zero_count = 0
     for i in range(n):
         if abs(d[i]) < 1e-9:
             d[i] = 0
+            zero_count += 1
         if d[i] > 0:
             count += 1
     minimum = np.empty(n)
     minimum.fill(1e10)
     if count == 0:
         return a, basis_number, d
-    elif count == n:
-        return "There is no answer"
     else:
         copy_a = np.copy(a)
         copy_d = np.copy(d)
 
         max_index = 0
         min_index = 0
+        flag = False
         for i in range(n):
             if d[i] > 0:
                 min_j_index = 0
@@ -116,10 +120,12 @@ def simplex_step(a, basis_number, d):
                     if a[j][i] > 0 and minimum[i] > a[j][-1] / a[j][i]:
                         minimum[i] = a[j][n - 1] / a[j][i]
                         min_j_index = j
+                        flag = True
                 if (minimum[max_index] * d[max_index]) < (minimum[i] * d[i]):
                     max_index = i
                     min_index = min_j_index
-
+        if not flag:
+            return "Function is not limited at this area"
         for j in range(n):
             copy_a[min_index][j] = a[min_index][j] / a[min_index][max_index]
 
@@ -151,6 +157,7 @@ def main():
     a = gauss(a)
     print(a)
     a, basis_number, d = simplex(a, c)
+    print(a)
     print(d)
     print(basis_number)
 
